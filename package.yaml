@@ -1,0 +1,65 @@
+name: spar
+version: 0.1.0.0
+description: Integration with SPAR
+
+dependencies:
+  - base >= 4.7 && < 5
+
+default-extensions:
+  - DataKinds
+  - DefaultSignatures
+  - DeriveAnyClass
+  - DeriveFoldable
+  - DeriveFunctor
+  - DeriveGeneric
+  - DeriveTraversable
+  - DerivingStrategies
+  - DerivingVia
+  - DuplicateRecordFields
+  - FlexibleContexts
+  - FlexibleInstances
+  - FunctionalDependencies
+  - GADTs
+  - GeneralizedNewtypeDeriving
+  - LambdaCase
+  - MultiParamTypeClasses
+  - OverloadedLabels
+  - OverloadedStrings
+  - RankNTypes
+  - ScopedTypeVariables
+  - StandaloneDeriving
+  - TemplateHaskell
+  - TupleSections
+  - TypeApplications
+  - TypeFamilies
+  - TypeOperators
+  - ViewPatterns
+  - NamedFieldPuns
+  - PolyKinds
+  - RecordWildCards
+  - StrictData
+
+library:
+  ghc-options:
+    - -Wall
+    - -Wcompat
+    - -Widentities
+    - -Wincomplete-record-updates
+    - -Wincomplete-uni-patterns
+    - -Wpartial-fields
+    - -Wredundant-constraints
+    - -Wno-name-shadowing
+    - -Wincomplete-record-updates
+    - -Wincomplete-patterns
+    - -Wunused-packages
+  source-dirs: src
+
+tests:
+  smart-proxy-test:
+    main: Main.hs
+    source-dirs: test
+    dependencies:
+      - spar
+      - hspec
+      - directory
+      - QuickCheck

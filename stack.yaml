@@ -1,0 +1,16 @@
+resolver: lts-19.31
+
+packages:
+  - .
+
+allow-newer: true
+
+system-ghc: true
+
+flags:
+  cryptonite:
+    use_target_attributes: false
+
+ghc-options:
+  "$locals": -fwrite-ide-info
+    -hiedir=.hie

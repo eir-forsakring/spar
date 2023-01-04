@@ -1,0 +1,17 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:per="http://statenspersonadressregister.se/schema/personsok/2021.1/personsokningfraga" xmlns:iden="http://statenspersonadressregister.se/schema/komponent/metadata/identifieringsinformationWs-1.1" xmlns:per1="http://statenspersonadressregister.se/schema/komponent/sok/personsokningsokparametrar-1.1" xmlns:per2="http://statenspersonadressregister.se/schema/komponent/person/person-1.2" xmlns:sok="http://statenspersonadressregister.se/schema/komponent/sok/sokargument-1.2">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <per:SPARPersonsokningFraga>
+         <iden:Identifieringsinformation>
+            <iden:KundNrLeveransMottagare>500243</iden:KundNrLeveransMottagare>
+            <iden:KundNrSlutkund>500243</iden:KundNrSlutkund>
+            <iden:UppdragId>637</iden:UppdragId>
+            <iden:SlutAnvandarId>Anställd X på avdelning Y, Testsökning C# .NET Core</iden:SlutAnvandarId>
+         </iden:Identifieringsinformation>
+
+         <per1:PersonsokningFraga>
+            <per2:IdNummer>198610279880</per2:IdNummer>
+         </per1:PersonsokningFraga>
+      </per:SPARPersonsokningFraga>
+   </soapenv:Body>
+</soapenv:Envelope>
