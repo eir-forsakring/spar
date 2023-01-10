@@ -4,6 +4,20 @@ description: Integration with SPAR
 
 dependencies:
   - base >= 4.7 && < 5
+  - bytestring
+  - containers
+  - mtl
+  - connection
+  - data-default
+  - http-client
+  - http-client-tls
+  - http-conduit
+  - req
+  - structural-xml
+  - time
+  - text
+  - tls
+  - xml-conduit
 
 default-extensions:
   - DataKinds
