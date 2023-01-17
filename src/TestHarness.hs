@@ -1,303 +1,299 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 
 module TestHarness where
 
-import Control.Monad.Except (MonadError)
-import qualified Data.ByteString.Lazy as BL
+import Control.Monad (forM_)
 import Data.Default
-import qualified Data.Map.Strict as Map
+import Data.Function ((&))
+import Data.Generics.Labels ()
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Encoding as TL
-import Data.Time (Day)
 import Data.XML
-import GHC.Generics
-import Network.Connection
-import Network.HTTP.Client
-import Network.HTTP.Client.TLS
-import Network.HTTP.Req (Scheme (Http, Https))
-import Network.TLS
-import Network.TLS.Extra.Cipher
+import Spar (queryWithSSN)
+import Spar.Parsing (deserializeSoapDocument)
+import Spar.Types
 import System.IO (IOMode (ReadMode), hGetContents, openFile)
 import qualified System.IO as IO
-import Text.XML (def)
 import qualified Text.XML as XC
-import qualified Text.XML.Cursor as Cursor
 
-testRequest :: Text
-testRequest =
-  "<?xml version='1.0' ?> \
-  \<soapenv:Envelope \
-  \   xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' \
-  \   xmlns:per='http://statenspersonadressregister.se/schema/personsok/2021.1/personsokningfraga' \
-  \   xmlns:iden='http://statenspersonadressregister.se/schema/komponent/metadata/identifieringsinformationWs-1.1' \
-  \   xmlns:per1='http://statenspersonadressregister.se/schema/komponent/sok/personsokningsokparametrar-1.1' \
-  \   xmlns:per2='http://statenspersonadressregister.se/schema/komponent/person/person-1.2' \
-  \   xmlns:sok='http://statenspersonadressregister.se/schema/komponent/sok/sokargument-1.2'> \
-  \ <soapenv:Header/> \
-  \ <soapenv:Body> \
-  \    <per:SPARPersonsokningFraga> \
-  \       <iden:Identifieringsinformation> \
-  \          <iden:KundNrLeveransMottagare>500243</iden:KundNrLeveransMottagare> \
-  \          <iden:KundNrSlutkund>500243</iden:KundNrSlutkund> \
-  \          <iden:UppdragId>637</iden:UppdragId> \
-  \          <iden:SlutAnvandarId>Anställd X på avdelning Y, Testsökning C# .NET Core</iden:SlutAnvandarId> \
-  \       </iden:Identifieringsinformation> \
-  \       <per1:PersonsokningFraga> \
-  \          <per2:IdNummer>198610279880</per2:IdNummer> \
-  \       </per1:PersonsokningFraga> \
-  \    </per:SPARPersonsokningFraga> \
-  \  </soapenv:Body> \
-  \ </soapenv:Envelope>"
+testSSNs :: [Text]
+testSSNs =
+  [ "193806099101",
+    "194001079120",
+    "194002219113",
+    "194103219202",
+    "194208106593",
+    "194411155858",
+    "194509287068",
+    "194601274758",
+    "194606233411",
+    "194703103111",
+    "194812161596",
+    "195309112489",
+    "195404132382",
+    "195406172626",
+    "195704133106",
+    "196110023055",
+    "196208132834",
+    "196210053143",
+    "196211022766",
+    "196305782390",
+    "196508163257",
+    "196604072675",
+    "196709132887",
+    "196805029268",
+    "196805249288",
+    "197001239297",
+    "197109259288",
+    "197110021834",
+    "197503259280",
+    "197503309176",
+    "197504049292",
+    "197504249215",
+    "197605832380",
+    "197901049283",
+    "197901249297",
+    "197902069272",
+    "197902199285",
+    "197903169261",
+    "197903309230",
+    "197904079295",
+    "197904299281",
+    "197905169251",
+    "197905209289",
+    "197906189282",
+    "197906209239",
+    "197907099282",
+    "197907179191",
+    "197908089274",
+    "197908109288",
+    "197909089265",
+    "197909189230",
+    "197910039283",
+    "197910209290",
+    "197911109291",
+    "197911239262",
+    "197912129280",
+    "197912309296",
+    "198001139297",
+    "198001249286",
+    "198002079294",
+    "198002289224",
+    "198003119255",
+    "198003219295",
+    "198004119288",
+    "198004209295",
+    "198005049294",
+    "198005149284",
+    "198006089240",
+    "198006299252",
+    "198007199295",
+    "198007299285",
+    "198008209275",
+    "198008289285",
+    "198009139265",
+    "198009269252",
+    "198010229238",
+    "198010279266",
+    "198011159285",
+    "198011169235",
+    "198012109289",
+    "198012279272",
+    "198101079294",
+    "198101199282",
+    "198102179291",
+    "198102259267",
+    "198103179241",
+    "198103269299",
+    "198104059293",
+    "198104239267",
+    "198105109253",
+    "198105169281",
+    "198106039228",
+    "198106079257",
+    "198107039276",
+    "198107249289",
+    "198108119291",
+    "198108189260",
+    "198109079296",
+    "198109249287",
+    "198110019299",
+    "198110259283",
+    "198111289297",
+    "198111309285",
+    "198112199289",
+    "198112279297",
+    "198112752384",
+    "198201179283",
+    "198201209296",
+    "198202029289",
+    "198202119296",
+    "198203249274",
+    "198203269264",
+    "198204179298",
+    "198204259264",
+    "198205049250",
+    "198205159281",
+    "198206139290",
+    "198206169289",
+    "198207059299",
+    "198207169288",
+    "198208059280",
+    "198208149297",
+    "198209109282",
+    "198209189292",
+    "198210099290",
+    "198210159284",
+    "198211039295",
+    "198211289288",
+    "198212019296",
+    "198212299286",
+    "198301109289",
+    "198302099265",
+    "198302249274",
+    "198303169281",
+    "198304149282",
+    "198304179297",
+    "198305119284",
+    "198306219299",
+    "198306259287",
+    "198307189285",
+    "198307259294",
+    "198308179285",
+    "198308299299",
+    "198309119264",
+    "198310159283",
+    "198310219277",
+    "198311209285",
+    "198312319281",
+    "198401279289",
+    "198402179298",
+    "198402289287",
+    "198403169280",
+    "198404189287",
+    "198405149280",
+    "198405299291",
+    "198406079288",
+    "198407119281",
+    "198408099284",
+    "198408199290",
+    "198409219287",
+    "198410039278",
+    "198410299286",
+    "198411279287",
+    "198412179288",
+    "198501139995",
+    "198502069993",
+    "198504129886",
+    "198505069883",
+    "198506119992",
+    "198509129881",
+    "198511179882",
+    "198511299995",
+    "198512089882",
+    "198601049995",
+    "198602029996",
+    "198603139885",
+    "198603249999",
+    "198604069883",
+    "198605219990",
+    "198606089889",
+    "198606129990",
+    "198607209882",
+    "198609259992",
+    "198610109996",
+    "198610279880",
+    "198611149991",
+    "198611239883",
+    "198612199995",
+    "198701022389",
+    "198703142391",
+    "198704102386",
+    "198704202392",
+    "198705212382",
+    "198705232398",
+    "198707012392",
+    "198708132397",
+    "198709232386",
+    "198710152391",
+    "198710162382",
+    "198711192396",
+    "198712092389",
+    "198811162398",
+    "198905112390",
+    "198910272395",
+    "198911222399",
+    "199001072389",
+    "199004202389",
+    "199012652385",
+    "199101112390",
+    "199201782399",
+    "199802162389",
+    "199812312388",
+    "199903672385",
+    "200301702395",
+    "200507172393",
+    "200605162395",
+    "200701172389",
+    "200701302382",
+    "200703172387",
+    "200703192385",
+    "200703202390",
+    "200704072388",
+    "200704122399",
+    "200704292382",
+    "200705012391",
+    "200706282399",
+    "200711012385",
+    "200712112382",
+    "200802172387",
+    "200802262386",
+    "200805022381",
+    "200807052394",
+    "200808152391",
+    "200808292387",
+    "200809152382",
+    "200901102392",
+    "200901242396",
+    "200901272385",
+    "201411242389",
+    "201504092394",
+    "201504302389",
+    "201507212387",
+    "201512252394",
+    "201601072398",
+    "201610232397",
+    "201703152395",
+    "201704162393",
+    "201709182388",
+    "201710152396"
+  ]
 
-data PersonsokningSvarpost = PersonsokningSvarpost
-  { personId :: PersonId,
-    sekretessMarkering :: Text,
-    skyddadFolkbokforing :: Text,
-    senasteAndringSPAR :: Text,
-    namn :: Namn,
-    persondetaljer :: Persondetaljer
-  }
-  deriving stock (Generic, Show, Eq)
-
--- deriving (FromElement) via PersonsokningSvarpost
-
-instance FromElement PersonsokningSvarpost where
-  fromElement = parseUnorderedElement' $ do
-    el <- consumeElement "PersonId"
-    sekretess <- consumeElement "Sekretessmarkering"
-    skyddad <- consumeElement "SkyddadFolkbokforing"
-    senaste <- consumeElement "SenasteAndringSPAR"
-    namn <- consumeElement "Namn"
-    persondetailer <- consumeElement "Persondetaljer"
-    _ <- consumeRemainingElements
-    pure (PersonsokningSvarpost el sekretess skyddad senaste namn persondetailer)
-
--- throwParserError (T.pack . show $ e)
-
-newtype PersonsokningFraga = PersonsokningFraga
-  { idNummer :: Text
-  }
-  deriving stock (Generic, Show, Eq)
-
-instance FromElement PersonsokningFraga where
-  fromElement = parseOrderedElement $ do
-    personId <- consumeElement "IdNummer"
-    pure (PersonsokningFraga personId)
-
-data Persondetaljer = Persondetaljer
-  { datumFrom :: Text,
-    datumTill :: Text,
-    sekretessmarkering :: Text,
-    skyddadFolkbokforing :: Text,
-    fodelsesdatum :: Text,
-    kon :: Text
-  }
-  deriving stock (Generic, Show, Eq)
-
-instance FromElement Persondetaljer where
-  fromElement = parseUnorderedElement' $ do
-    from <- consumeElement "DatumFrom"
-    to <- consumeElement "DatumTill"
-    sekretessmarkering <- consumeElement "Sekretessmarkering"
-    skyddad <- consumeElement "SkyddadFolkbokforing"
-    date <- consumeElement "Fodelsedatum"
-    gender <- consumeElement "Kon"
-    pure (Persondetaljer from to sekretessmarkering skyddad date gender)
-
-data Namn = Namn
-  { datumFrom :: Text,
-    datumTill :: Text,
-    fornamn :: Text,
-    efternamn :: Text
-  }
-  deriving stock (Generic, Show, Eq)
-
-instance FromElement Namn where
-  fromElement = parseUnorderedElement' $ do
-    from <- consumeElement "DatumFrom"
-    to <- consumeElement "DatumTill"
-    firstName <- consumeElement "Fornamn"
-    lastName <- consumeElement "Efternamn"
-    pure (Namn from to firstName lastName)
-
-data PersonId = PersonId
-  { idNummer :: Text,
-    typ :: Text
-  }
-  deriving stock (Generic, Show, Eq)
-
-instance FromElement PersonId where
-  fromElement = parseUnorderedElement' $ do
-    idNummer <- consumeElement "IdNummer"
-    typ <- consumeElement "Typ"
-    pure (PersonId idNummer typ)
-
-newtype Sekretessmarkering = Sekretessmarkering Text deriving stock (Generic, Show)
-
-instance FromElement Sekretessmarkering where
-  fromElement = parseUnorderedElement' $ do
-    sekretess <- consumeElement "Sekretessmarkering"
-    pure (Sekretessmarkering sekretess)
-
-data IdNummer = IdNummer
-  { idNummer :: Text,
-    typ :: Maybe Text
-  }
-  deriving stock (Generic, Show, Eq)
-
-instance FromElement IdNummer where
-  fromElement e = throwParserError (T.pack . show $ e)
-
--- throwParserError (T.pack . show $ e)
--- fromElement = parseUnorderedElement' $ do
---  idNummer <- consumeElement "IdNummer"
--- throwParserError "asdf"
-
--- _ <- consumeRemainingElements
--- typ <- consumeElementOrEmpty "Typ"
--- pure (IdNummer idNummer Nothing)
-
-data SPARPersonsokningSvar = SPARPersonsokningSvar
-  { personsokningFraga :: PersonsokningFraga,
-    personsokningSvarspost :: PersonsokningSvarpost
-  }
-  deriving stock (Generic, Show, Eq)
-
-newtype SPARResponseDocument = SPARResponseDocument {personsokningSvarspost :: SPARPersonsokningSvar}
-  deriving stock (Generic, Show, Eq)
-
-instance FromElement SPARPersonsokningSvar where
-  fromElement =
-    parseUnorderedElement' $ do
-      query <- consumeElement "PersonsokningFraga"
-      answer <- consumeElement "PersonsokningSvarspost"
-      -- throwParserError (T.pack . show $ e)
-      pure (SPARPersonsokningSvar query answer)
-
--- _ <- consumeRemainingElements
--- pure (SPARPersonsokningSvar el)
-
-parseUnorderedElement' :: (forall m. (AttributeConsumer m, ElementConsumer m, MonadError ParserError m) => m a) -> Element -> Either ParserError a
-parseUnorderedElement' go = parseUnorderedElement $
-  do
-    result <- go
-    _ <- consumeRemainingElements
-    pure result
-
-stripElementNamespaces :: Element -> Element
-stripElementNamespaces Element {..} =
-  Element
-    { attributes = Map.mapKeys stripNamespace attributes,
-      children = map stripNodeNamespaces children
-    }
-
-stripNodeNamespaces :: Node -> Node
-stripNodeNamespaces = \case
-  NodeElement name element ->
-    NodeElement (stripNamespace name) (stripElementNamespaces element)
-  NodeContent content -> NodeContent content
-
-stripNamespace :: XC.Name -> XC.Name
-stripNamespace name = name {XC.nameNamespace = Nothing}
-
-deserialize :: IO ()
-deserialize = do
-  handle <- openFile "./test/sparresponse.xml" ReadMode
+deserializeFile :: FilePath -> IO ()
+deserializeFile path = do
+  handle <- openFile path ReadMode
   contents <- hGetContents handle
-  let soapDoc = XC.parseText_ def (TL.pack contents)
-      [XC.NodeElement elem] = do
-        envelope <- Cursor.element "{http://schemas.xmlsoap.org/soap/envelope/}Envelope" $ Cursor.fromDocument soapDoc
-        body <- Cursor.element "{http://schemas.xmlsoap.org/soap/envelope/}Body" =<< Cursor.child envelope
-        svar <- Cursor.element "{http://statenspersonadressregister.se/schema/personsok/2021.1/personsokningsvar}SPARPersonsokningSvar" =<< Cursor.child body
-        -- Cursor.content =<< Cursor.child body
 
-        pure $ Cursor.node svar
-  -- IO.print $ stripElementNamespaces . fromXmlConduitElement $ elem
-  IO.print (parseThing . stripElementNamespaces . fromXmlConduitElement $ elem)
+  IO.print $ deserializeSoapDocument (XC.parseText_ def . TL.fromStrict . T.pack $ contents)
 
--- let responseDoc' = XC.parseText_ def $ TL.fromStrict root
-
--- IO.print root
--- let [XC.NodeElement svarElement] = do
---      responsePost <- Cursor.element "PersonsokningSvarspost" $ Cursor.fromDocument responseDoc'
---      pure $ Cursor.node responsePost
-
--- [XC.NodeElement elem] = do
--- svar <- Cursor.element "{http://statenspersonadressregister.se/schema/personsok/2021.1/personsokningsvar}SPARPersonsokningSvar" =<< Cursor.child xmlDoc
--- doc <- Cursor.element =<< Cursor.fromDocument xmlDoc
---  pure $ Cursor.node doc
--- IO.print svarElement
-
--- IO.print (parseThing . stripElementNamespaces . fromXmlConduitElement $ elem)
-
-runRequest :: IO ()
-runRequest = do
-  let hostName = "https://kt-ext-ws.statenspersonadressregister.se/2021.1/personsok"
-  manager <- makeClientManager hostName Https -- _tlsManagerSettings
-  request <- buildRequest "https://kt-ext-ws.statenspersonadressregister.se/2021.1/personsok"
-  response <- responseBody <$> httpLbs request manager
-
-  let soapDoc = XC.parseText_ def $ TL.decodeUtf8 response
-      [XC.NodeElement elem] = do
-        envelope <- Cursor.element "{http://schemas.xmlsoap.org/soap/envelope/}Envelope" $ Cursor.fromDocument soapDoc
-        body <- Cursor.element "{http://schemas.xmlsoap.org/soap/envelope/}Body" =<< Cursor.child envelope
-        svar <- Cursor.element "{http://statenspersonadressregister.se/schema/personsok/2021.1/personsokningsvar}SPARPersonsokningSvar" =<< Cursor.child body
-        pure $ Cursor.node body
-  IO.print response
-  IO.print (stripElementNamespaces . fromXmlConduitElement $ elem)
-  IO.print (parseThing . stripElementNamespaces . fromXmlConduitElement $ elem)
-
--- IO.print $ fromXmlConduitElement elem
-
--- IO.print $ parseThing . fromXmlConduitElement $ elem
-
-parseThing :: Element -> Either ParserError SPARPersonsokningSvar
-parseThing responseData = do
-  m <- fromElement responseData
-  return m
-
--- IO.print soapDoc
-
--- let doc = parseDocument (_ response)
--- IO.print doc
--- IO.print . show $ response
-
--- print testRequest
-
-makeClientManager :: String -> Scheme -> IO Manager
-makeClientManager hostname Https = mkMngr hostname "/home/oddvar/repos/eircorp/spar/test/testspar.pem" "/home/oddvar/repos/eircorp/spar/test/testspar.pem"
-makeClientManager _ Http = newManager defaultManagerSettings
-
-mkMngr :: String -> FilePath -> FilePath -> IO Manager
-mkMngr hostName crtFile keyFile = do
-  creds <- either error Just `fmap` credentialLoadX509 crtFile keyFile
-  let hooks =
-        def
-          { onCertificateRequest = \_ -> return creds,
-            onServerCertificate = \_ _ _ _ -> return []
-          }
-      clientParams =
-        (defaultParamsClient hostName "")
-          { clientHooks = hooks,
-            clientSupported = def {supportedCiphers = ciphersuite_default}
-          }
-      tlsSettings = TLSSettings clientParams
-
-  newManager $ mkManagerSettings tlsSettings Nothing
-
-buildRequest :: Text -> IO Request
-buildRequest url = do
-  nakedRequest <- parseRequest $ T.unpack url
-  return
-    ( nakedRequest
-        { method = "POST",
-          requestHeaders =
-            [ ("Content-Type", "text/xml")
-            ],
-          requestBody = RequestBodyLBS $ BL.fromStrict . TE.encodeUtf8 $ testRequest
-        }
+runTests :: IO ()
+runTests = do
+  forM_
+    (testSSNs & take 50 . reverse)
+    ( \ssn ->
+        runRequestWithConfig cfg ssn
+          >>= ( \case
+                  Left e -> do
+                    print ("Error calling " <> ssn <> " result:")
+                    print e
+                  Right _ -> return ()
+              )
     )
+  where
+    cfg = Config "https://kt-ext-ws.statenspersonadressregister.se/2021.1/personsok"
+
+-- runRequest "198307189285"
+
+runRequestWithConfig :: Config -> SSN -> IO (Either ParserError SPARPersonsokningSvar)
+runRequestWithConfig = queryWithSSN
