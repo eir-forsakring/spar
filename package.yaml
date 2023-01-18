@@ -6,6 +6,7 @@ dependencies:
   - base >= 4.7 && < 5
   - bytestring
   - containers
+  - exceptions
   - mtl
   - connection
   - data-default

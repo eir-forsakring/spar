@@ -11,11 +11,11 @@ import Data.XML
 import GHC.Generics (Generic)
 import Text.XML (Name)
 
-type SparResponse = Either ParserError SPARPersonsokningSvar
+type SparResponse = Either SparError PersonsokningSvarpost
 
 type SparResponse' = Either SparError SPARPersonsokningSvar
 
-data SparError = ParseError' | RequestError Text | PersonDoesNotFound SSN deriving (Show)
+data SparError = NoParse ParserError | RequestError Text | PersonNotFound SSN deriving (Show)
 
 type SSN = Text
 

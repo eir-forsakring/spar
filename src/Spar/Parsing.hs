@@ -24,7 +24,7 @@ stripNodeNamespaces = \case
 stripNamespace :: XC.Name -> XC.Name
 stripNamespace name = name {XC.nameNamespace = Nothing}
 
-deserializeSoapDocument :: XC.Document -> Either (Element, ParserError) SPARPersonsokningSvar
+deserializeSoapDocument :: XC.Document -> Either ParserError SPARPersonsokningSvar
 deserializeSoapDocument soapDoc =
   let [XC.NodeElement elem] = do
         envelope <- Cursor.element "{http://schemas.xmlsoap.org/soap/envelope/}Envelope" $ Cursor.fromDocument soapDoc
@@ -32,5 +32,5 @@ deserializeSoapDocument soapDoc =
         svar <- Cursor.element "{http://statenspersonadressregister.se/schema/personsok/2021.1/personsokningsvar}SPARPersonsokningSvar" =<< Cursor.child body
         pure $ Cursor.node svar
    in case fromElement . stripElementNamespaces . fromXmlConduitElement $ elem of
-        Left e -> Left (stripElementNamespaces . fromXmlConduitElement $ elem, e)
+        Left e -> Left e
         Right s -> pure s

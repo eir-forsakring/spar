@@ -3,6 +3,8 @@
 module Spar where
 
 import Control.Lens ((^.))
+import Control.Monad.Catch
+import qualified Data.ByteString.Lazy as BL
 import Data.Default (def)
 import qualified Data.Text.Lazy.Encoding as TL
 import Network.HTTP.Client (Response (responseBody), httpLbs)
@@ -13,11 +15,21 @@ import qualified Text.XML as XC
 
 queryWithSSN :: Config -> SSN -> IO SparResponse
 queryWithSSN cfg ssn = do
+  response <- (Right . responseBody <$> queryWithSSNRaw cfg ssn) `catch` (\(e :: SomeException) -> return $ Left (RequestError "asdf"))
+  return $ parseResponse response
+
+queryWithSSNRaw :: Config -> SSN -> IO (Response BL.ByteString)
+queryWithSSNRaw cfg ssn = do
   manager <- makeTLSManager cfg
   request <- buildRequest (cfg ^. #url) (mkRequest ssn)
-  response <- responseBody <$> httpLbs request manager
-  let soapDoc = XC.parseText_ def $ TL.decodeUtf8 response
-  case deserializeSoapDocument soapDoc of
-    Left err -> do
-      return $ Left $ snd err
-    Right r -> return $ Right r
+  httpLbs request manager
+
+parseResponse :: Either SparError BL.ByteString -> Either SparError PersonsokningSvarpost
+parseResponse e = do
+  doc <- deserializeSoapDocument . XC.parseText_ def . TL.decodeUtf8 <$> e
+  case doc of
+    Right r -> do
+      case r ^. #personsokningSvarspost of
+        Nothing -> Left $ PersonNotFound $ r ^. #personsokningFraga . #idNummer
+        Just p -> pure p
+    Left e -> Left $ NoParse e
