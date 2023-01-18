@@ -73,8 +73,8 @@ library:
   source-dirs: src
 
 tests:
-  smart-proxy-test:
-    main: Main.hs
+  spar-test:
+    main: Spec.hs
     source-dirs: test
     dependencies:
       - spar

@@ -26,8 +26,12 @@ queryWithSSNRaw cfg ssn = do
 
 parseResponse :: Either SparError BL.ByteString -> Either SparError PersonsokningSvarpost
 parseResponse e = do
-  doc <- deserializeSoapDocument . XC.parseText_ def . TL.decodeUtf8 <$> e
-  case doc of
+  doc <- XC.parseText_ def . TL.decodeUtf8 <$> e
+  parseDocument doc
+
+parseDocument :: XC.Document -> Either SparError PersonsokningSvarpost
+parseDocument doc = do
+  case deserializeSoapDocument doc of
     Right r -> do
       case r ^. #personsokningSvarspost of
         Nothing -> Left $ PersonNotFound $ r ^. #personsokningFraga . #idNummer

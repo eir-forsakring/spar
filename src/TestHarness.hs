@@ -10,6 +10,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
+import Data.XML (Document)
 import Network.HTTP.Client (Response (responseBody))
 import Spar (queryWithSSN, queryWithSSNRaw)
 import Spar.Parsing (deserializeSoapDocument)
@@ -38,6 +39,19 @@ saveRawResponse cfg path ssn = do
   response <- queryWithSSNRaw cfg ssn
   withFile (T.unpack writePath) WriteMode $ \file -> do
     hPutStrLn file (T.unpack . TL.toStrict . TL.decodeUtf8 . responseBody $ response)
+
+loadResponse :: FilePath -> SSN -> IO Text
+loadResponse path ssn = do
+  let readPath = path <> "/" <> T.unpack ssn <> ".xml"
+  xs <- readFile readPath
+  return $ T.pack xs
+
+loadDocument :: FilePath -> SSN -> IO XC.Document
+loadDocument path ssn = do
+  s <- loadResponse path ssn
+  return $ XC.parseText_ def . TL.fromStrict $ s
+
+--  hGetContents file
 
 testCfg :: Config
 testCfg = Config "https://kt-ext-ws.statenspersonadressregister.se/2021.1/personsok"
