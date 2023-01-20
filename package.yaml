@@ -13,14 +13,12 @@ dependencies:
   - generic-lens
   - http-client
   - http-client-tls
-  - http-conduit
   - lens
   - req
   - structural-xml
   - time
   - text
   - tls
-  - uuid
   - xml-conduit
 
 default-extensions:

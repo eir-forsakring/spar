@@ -12,10 +12,11 @@ import Spar.Manager
 import Spar.Parsing
 import Spar.Types
 import qualified Text.XML as XC
+import Data.Text as T
 
 queryWithSSN :: Config -> SSN -> IO SparResponse
 queryWithSSN cfg ssn = do
-  response <- (Right . responseBody <$> queryWithSSNRaw cfg ssn) `catch` (\(e :: SomeException) -> return $ Left (RequestError "asdf"))
+  response <- (Right . responseBody <$> queryWithSSNRaw cfg ssn) `catch` (\(e :: SomeException) -> return $ Left (RequestError $ T.pack $ show e))
   return $ parseResponse response
 
 queryWithSSNRaw :: Config -> SSN -> IO (Response BL.ByteString)

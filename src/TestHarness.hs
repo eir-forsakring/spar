@@ -10,7 +10,6 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
-import Data.XML (Document)
 import Network.HTTP.Client (Response (responseBody))
 import Spar (queryWithSSN, queryWithSSNRaw)
 import Spar.Parsing (deserializeSoapDocument)
@@ -54,7 +53,7 @@ loadDocument path ssn = do
 --  hGetContents file
 
 testCfg :: Config
-testCfg = Config "https://kt-ext-ws.statenspersonadressregister.se/2021.1/personsok"
+testCfg = Config "https://kt-ext-ws.statenspersonadressregister.se/2021.1/personsok" "./test/testspar.pem" "./test/testspar.pem"
 
 runTests :: IO ()
 runTests = do
@@ -62,7 +61,7 @@ runTests = do
   forM_
     (testSSNs & take 10)
     ( \ssn ->
-        queryWithSSN cfg ssn
+        queryWithSSN testCfg ssn
           >>= ( \case
                   Left e -> do
                     print ("Error calling " <> ssn <> " result:")
@@ -70,20 +69,12 @@ runTests = do
                   Right r -> print r
               )
     )
-  where
-    cfg = Config "https://kt-ext-ws.statenspersonadressregister.se/2021.1/personsok"
 
 testFailingRequest :: IO SparResponse
-testFailingRequest = queryWithSSN cfg "201507212387"
-  where
-    cfg = Config "https://kt-ext-ws.statenspersonadressregister.seo/2021.1/"
+testFailingRequest = queryWithSSN testCfg "201507212387"
 
 testFailingPerson :: IO SparResponse
-testFailingPerson = queryWithSSN cfg "201507200000"
-  where
-    cfg = Config "https://kt-ext-ws.statenspersonadressregister.se/2021.1/"
+testFailingPerson = queryWithSSN testCfg "201507200000"
 
 testRequest :: IO SparResponse
-testRequest = queryWithSSN cfg "201507212387"
-  where
-    cfg = Config "https://kt-ext-ws.statenspersonadressregister.se/2021.1/"
+testRequest = queryWithSSN testCfg "201507212387"

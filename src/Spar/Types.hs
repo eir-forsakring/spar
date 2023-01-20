@@ -177,6 +177,8 @@ instance FromElement SvenskAdress where
 
 data Config = Config
   { url :: String
+  , certFile :: String
+  , keyFile :: String
   }
   deriving stock (Generic, Show)
 
@@ -187,7 +189,7 @@ parseUnorderedElement' go = parseUnorderedElement $
     _ <- consumeRemainingElements
     pure result
 
-consumeDay :: (ElementConsumer m, FromElement Text) => Name -> m Day
+consumeDay :: (ElementConsumer m) => Name -> m Day
 consumeDay name = do
   consumeElementOrAbsent name >>= \case
     Nothing -> throwParserError $ "Missing " <> Text.pack (show name) <> " element."

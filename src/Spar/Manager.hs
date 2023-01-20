@@ -58,15 +58,15 @@ mkRequest ssn =
        \ </soapenv:Envelope>"
 
 makeClientManager :: Scheme -> Config -> IO Manager
-makeClientManager Https cfg = mkMngr cfg "/home/oddvar/repos/eircorp/spar/test/testspar.pem" "/home/oddvar/repos/eircorp/spar/test/testspar.pem"
+makeClientManager Https cfg = mkMngr cfg
 makeClientManager Http _ = newManager defaultManagerSettings
 
 makeTLSManager :: Config -> IO Manager
 makeTLSManager = makeClientManager Https
 
-mkMngr :: Config -> FilePath -> FilePath -> IO Manager
-mkMngr cfg crtFile keyFile = do
-  creds <- either error Just `fmap` credentialLoadX509 crtFile keyFile
+mkMngr :: Config -> IO Manager
+mkMngr cfg = do
+  creds <- either error Just `fmap` credentialLoadX509 "/sparcert.pem" "/sparcert.pem"
   let hooks =
         def
           { onCertificateRequest = \_ -> return creds,
