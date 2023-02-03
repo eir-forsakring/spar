@@ -66,7 +66,7 @@ makeTLSManager = makeClientManager Https
 
 mkMngr :: Config -> IO Manager
 mkMngr cfg = do
-  creds <- either error Just `fmap` credentialLoadX509 "/sparcert.pem" "/sparcert.pem"
+  creds <- either error Just `fmap` credentialLoadX509 (cfg ^. #certFile) (cfg ^. #keyFile)
   let hooks =
         def
           { onCertificateRequest = \_ -> return creds,

@@ -55,6 +55,9 @@ loadDocument path ssn = do
 testCfg :: Config
 testCfg = Config "https://kt-ext-ws.statenspersonadressregister.se/2021.1/personsok" "./test/testspar.pem" "./test/testspar.pem"
 
+prodCfg :: Config
+prodCfg = Config "https://kt-ext-ws.statenspersonadressregister.se/2021.1/personsok" "/home/oddvar/Downloads/SPAREIR.pem" "/home/oddvar/Downloads/SPAREIR.pem"
+
 runTests :: IO ()
 runTests = do
   testSSNs <- testSSN "./test/personnummer.csv"
