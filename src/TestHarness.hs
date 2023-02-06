@@ -14,6 +14,7 @@ import Network.HTTP.Client (Response (responseBody))
 import Spar (queryWithSSN, queryWithSSNRaw)
 import Spar.Parsing (deserializeSoapDocument)
 import Spar.Types
+import System.Environment (getEnv)
 import System.IO (IOMode (ReadMode, WriteMode), hGetContents, hPutStrLn, openFile, withFile)
 import qualified System.IO as IO
 import qualified Text.XML as XC
@@ -53,10 +54,17 @@ loadDocument path ssn = do
 --  hGetContents file
 
 testCfg :: Config
-testCfg = Config "https://kt-ext-ws.statenspersonadressregister.se/2021.1/personsok" "./test/testspar.pem" "./test/testspar.pem"
+testCfg = Config "https://kt-ext-ws.statenspersonadressregister.se/2021.1/personsok" "./test/testspar.pem" "./test/testspar.pem" "500243" "637" Nothing
 
-prodCfg :: Config
-prodCfg = Config "https://kt-ext-ws.statenspersonadressregister.se/2021.1/personsok" "/home/oddvar/Downloads/SPAREIR.pem" "/home/oddvar/Downloads/SPAREIR.pem"
+acquireConfig :: IO Config
+acquireConfig = do
+  url <- getEnv "SPAR_URL"
+  certFile <- getEnv "SPAR_CERT"
+  keyFile <- getEnv "SPAR_KEY"
+  customerNr <- T.pack <$> getEnv "SPAR_CUSTOMER_NUMBER"
+  assignmentId <- T.pack <$> getEnv "SPAR_ASSIGNMENT_ID"
+
+  return $ Config url certFile keyFile customerNr assignmentId Nothing
 
 runTests :: IO ()
 runTests = do
