@@ -6,6 +6,7 @@ import Control.Lens ((^.))
 import qualified Data.ByteString.Lazy as BL
 import Data.Default (Default (def))
 import Data.Generics.Labels ()
+import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text.Encoding as TE
 import Network.Connection (TLSSettings (TLSSettings))
@@ -29,8 +30,8 @@ import Network.TLS
 import Network.TLS.Extra.Cipher
 import Spar.Types
 
-mkRequest :: SSN -> Text
-mkRequest ssn =
+mkRequest :: Config -> SSN -> Text
+mkRequest cfg ssn =
   "<?xml version='1.0' ?> \
   \<soapenv:Envelope \
   \   xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' \
@@ -43,13 +44,21 @@ mkRequest ssn =
   \ <soapenv:Body> \
   \    <per:SPARPersonsokningFraga> \
   \       <iden:Identifieringsinformation> \
-  \          <iden:KundNrLeveransMottagare>500243</iden:KundNrLeveransMottagare> \
-  \          <iden:KundNrSlutkund>500243</iden:KundNrSlutkund> \
-  \          <iden:UppdragId>637</iden:UppdragId> \
-  \          <iden:SlutAnvandarId>Anställd X på avdelning Y, Testsökning C# .NET Core</iden:SlutAnvandarId> \
-  \       </iden:Identifieringsinformation> \
-  \       <per1:PersonsokningFraga> \
-  \          <per2:IdNummer>"
+  \          <iden:KundNrLeveransMottagare>"
+    <> (cfg ^. #customerNr)
+    <> "</iden:KundNrLeveransMottagare> \
+       \          <iden:KundNrSlutkund>"
+    <> (cfg ^. #customerNr)
+    <> "</iden:KundNrSlutkund> \
+       \          <iden:UppdragId>"
+    <> (cfg ^. #assignmentId)
+    <> "</iden:UppdragId> \
+       \<iden:SlutAnvandarId>"
+    <> fromMaybe "Eir" (cfg ^. #endUserId)
+    <> "</iden:SlutAnvandarId> \
+       \       </iden:Identifieringsinformation> \
+       \       <per1:PersonsokningFraga> \
+       \          <per2:IdNummer>"
     <> ssn
     <> "</per2:IdNummer> \
        \       </per1:PersonsokningFraga> \

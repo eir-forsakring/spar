@@ -21,6 +21,10 @@ type SSN = Text
 
 type Query = Text
 
+type KundNrSlutKund = Text
+
+type UppdragId = Text
+
 data SPARPersonsokningSvar = SPARPersonsokningSvar
   { personsokningFraga :: PersonsokningFraga,
     personsokningSvarspost :: Maybe PersonsokningSvarpost,
@@ -176,9 +180,12 @@ instance FromElement SvenskAdress where
     pure (SvenskAdress from to utdelningsadress1 utdelningsadress2 postNr postOrt)
 
 data Config = Config
-  { url :: String
-  , certFile :: String
-  , keyFile :: String
+  { url :: String,
+    certFile :: String,
+    keyFile :: String,
+    customerNr :: KundNrSlutKund,
+    assignmentId :: UppdragId,
+    endUserId :: Maybe Text
   }
   deriving stock (Generic, Show)
 
