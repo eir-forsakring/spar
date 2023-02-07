@@ -24,13 +24,16 @@ stripNodeNamespaces = \case
 stripNamespace :: XC.Name -> XC.Name
 stripNamespace name = name {XC.nameNamespace = Nothing}
 
-deserializeSoapDocument :: XC.Document -> Either ParserError SPARPersonsokningSvar
+deserializeSoapDocument :: XC.Document -> Either SparError SPARPersonsokningSvar
 deserializeSoapDocument soapDoc =
-  let [XC.NodeElement elem] = do
+  let elements = do
         envelope <- Cursor.element "{http://schemas.xmlsoap.org/soap/envelope/}Envelope" $ Cursor.fromDocument soapDoc
         body <- Cursor.element "{http://schemas.xmlsoap.org/soap/envelope/}Body" =<< Cursor.child envelope
         svar <- Cursor.element "{http://statenspersonadressregister.se/schema/personsok/2021.1/personsokningsvar}SPARPersonsokningSvar" =<< Cursor.child body
         pure $ Cursor.node svar
-   in case fromElement . stripElementNamespaces . fromXmlConduitElement $ elem of
-        Left e -> Left e
-        Right s -> pure s
+   in case elements of
+        [XC.NodeElement elem] -> do
+          case fromElement . stripElementNamespaces . fromXmlConduitElement $ elem of
+            Left e -> Left $ NoParse e
+            Right s -> pure s
+        _ -> Left $ RequestError "SSN format not valid."

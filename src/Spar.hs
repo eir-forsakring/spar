@@ -37,4 +37,4 @@ parseDocument doc = do
       case r ^. #personsokningSvarspost of
         Nothing -> Left $ PersonNotFound $ r ^. #personsokningFraga . #idNummer
         Just p -> pure p
-    Left e -> Left $ NoParse e
+    Left e -> Left e
