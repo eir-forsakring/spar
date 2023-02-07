@@ -3,6 +3,7 @@
 module Spar.Types where
 
 import Control.Monad.Except (MonadError)
+import Data.Aeson (FromJSON, ToJSON)
 import Data.Text (Text)
 import qualified Data.Text as Text
 import Data.Time (Day, defaultTimeLocale)
@@ -188,6 +189,7 @@ data Config = Config
     endUserId :: Maybe Text
   }
   deriving stock (Generic, Show)
+  deriving anyclass (FromJSON, ToJSON)
 
 parseUnorderedElement' :: (forall m. (AttributeConsumer m, ElementConsumer m, MonadError ParserError m) => m a) -> Element -> Either ParserError a
 parseUnorderedElement' go = parseUnorderedElement $
