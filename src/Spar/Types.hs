@@ -11,12 +11,21 @@ import Data.Time.Format (parseTimeM)
 import Data.XML
 import GHC.Generics (Generic)
 import Text.XML (Name)
+import Network.HTTP.Client (Response)
+import qualified Data.ByteString.Lazy as BL
+import Control.Exception (Exception)
 
 type SparResponse = Either SparError PersonsokningSvarpost
 
 type SparResponse' = Either SparError SPARPersonsokningSvar
 
-data SparError = NoParse ParserError | RequestError Text | PersonNotFound SSN deriving (Show)
+data SparError
+  = NoParse ParserError
+  | ParseFail Text
+  | RequestError (Response BL.ByteString)
+  | TransportError Text
+  | PersonNotFound SSN
+  deriving (Show, Exception)
 
 type SSN = Text
 
