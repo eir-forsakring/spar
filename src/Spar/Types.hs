@@ -21,7 +21,7 @@ type SparResponse' = Either SparError SPARPersonsokningSvar
 
 data SparError
   = NoParse ParserError
-  | ParseFail Text
+  | UnexpectedParseResult Text
   | RequestError (Response BL.ByteString)
   | TransportError Text
   | PersonNotFound SSN
