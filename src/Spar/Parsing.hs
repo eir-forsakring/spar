@@ -36,4 +36,4 @@ deserializeSoapDocument soapDoc =
           case fromElement . stripElementNamespaces . fromXmlConduitElement $ elem of
             Left e -> Left $ NoParse e
             Right s -> pure s
-        _ -> Left $ RequestError "SSN format not valid."
+        _ -> Left $ UnexpectedParseResult "SSN format not valid."
