@@ -1,8 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+import Control.Monad
 import Control.Monad.IO.Class (liftIO)
+import Data.Either
 import Spar
-import Spar.Parsing
 import Spar.Types
 import Test.Hspec
 import TestHarness
@@ -16,6 +17,6 @@ spec cfg = do
   describe "deserialize" $ do
     it "loads a response" $ do
       s <- liftIO $ testSSN "./test/personnummer.csv"
-      n <- mapM (loadDocument "./test/responses") (take 5 s)
-      print (map parseDocument n)
-      1 `shouldBe` 1
+      forM_ s $ \ssn -> do
+        resp <- loadResponse "./test/responses" ssn
+        parseResponse resp `shouldSatisfy` isRight

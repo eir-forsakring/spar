@@ -3,6 +3,7 @@
 module TestHarness where
 
 import Control.Monad (forM_)
+import qualified Data.ByteString.Lazy as BSL
 import Data.Default
 import Data.Function ((&))
 import Data.Generics.Labels ()
@@ -11,8 +12,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
 import Network.HTTP.Client (Response (responseBody))
-import Spar (queryWithSSN, queryWithSSNRaw)
-import Spar.Parsing (deserializeSoapDocument)
+import Spar (parseResponse', queryWithSSN, queryWithSSNRaw)
 import Spar.Types
 import System.Environment (getEnv)
 import System.IO (IOMode (ReadMode, WriteMode), hGetContents, hPutStrLn, openFile, withFile)
@@ -29,9 +29,9 @@ testSSN path = do
 deserializeFile :: FilePath -> IO ()
 deserializeFile path = do
   handle <- openFile path ReadMode
-  contents <- hGetContents handle
+  contents <- BSL.hGetContents handle
 
-  IO.print $ deserializeSoapDocument (XC.parseText_ def . TL.fromStrict . T.pack $ contents)
+  IO.print $ parseResponse' contents
 
 saveRawResponse :: Config -> FilePath -> SSN -> IO ()
 saveRawResponse cfg path ssn = do
@@ -40,16 +40,15 @@ saveRawResponse cfg path ssn = do
   withFile (T.unpack writePath) WriteMode $ \file -> do
     hPutStrLn file (T.unpack . TL.toStrict . TL.decodeUtf8 . responseBody $ response)
 
-loadResponse :: FilePath -> SSN -> IO Text
+loadResponse :: FilePath -> SSN -> IO BSL.ByteString
 loadResponse path ssn = do
   let readPath = path <> "/" <> T.unpack ssn <> ".xml"
-  xs <- readFile readPath
-  return $ T.pack xs
+  BSL.readFile readPath
 
 loadDocument :: FilePath -> SSN -> IO XC.Document
 loadDocument path ssn = do
   s <- loadResponse path ssn
-  return $ XC.parseText_ def . TL.fromStrict $ s
+  return $ XC.parseLBS_ def s
 
 --  hGetContents file
 
