@@ -35,7 +35,7 @@ queryWithSSNRaw cfg ssn = do
       request <- buildRequest (cfg ^. #url) (mkRequest cfg ssn)
       httpLbs request manager
 
-parseResponse :: BL.ByteString -> Either SparError PersonsokningSvarspost
+parseResponse :: BL.ByteString -> Either SparError AviseringPostTYPE
 parseResponse e = do
   body <- parseResponse' e
   case body ^. #personsokningSvarspost of

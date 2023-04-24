@@ -19,15 +19,15 @@ import GHC.Generics (Generic)
     </xs:restriction>
 </xs:simpleType>
 -}
-newtype SparDay = SparDay Day
+newtype SparDatumTYPE = SparDatumTYPE Day
   deriving stock (Show, Eq)
 
-instance FromContent SparDay where
+instance FromContent SparDatumTYPE where
   fromContent text i = case parseTimeM False defaultTimeLocale "%Y-%m-%d" $ Text.unpack text of
-    Just day -> pure $ SparDay day
+    Just day -> pure $ SparDatumTYPE day
     Nothing -> Left $ parserError i "Invalid date"
 
-deriving via ContentElement SparDay instance FromElement SparDay
+deriving via ContentElement SparDatumTYPE instance FromElement SparDatumTYPE
 
 {-
 <xs:element name="PersonId" type="PersonIdTYPE"/>
@@ -63,9 +63,9 @@ instance FromElement PersonId where
     </xs:sequence>
 </xs:complexType>
 -}
-data Namn = Namn
-  { datumFrom :: SparDay,
-    datumTill :: SparDay,
+data NamnTYPE = NamnTYPE
+  { datumFrom :: SparDatumTYPE,
+    datumTill :: SparDatumTYPE,
     aviseringsnamn :: Maybe Text,
     fornamn :: Maybe Text,
     tilltalsnamn :: Maybe Text,
@@ -74,7 +74,7 @@ data Namn = Namn
   }
   deriving stock (Generic, Show, Eq)
 
-instance FromElement Namn where
+instance FromElement NamnTYPE where
   fromElement = parseOrderedElement $ do
     datumFrom <- consumeElement "DatumFrom"
     datumTill <- consumeElement "DatumTill"
@@ -83,7 +83,7 @@ instance FromElement Namn where
     tilltalsnamn <- consumeElementOrAbsent "Tilltalsnamn"
     mellannamn <- consumeElementOrAbsent "Mellannamn"
     efternamn <- consumeElementOrAbsent "Efternamn"
-    pure Namn {..}
+    pure NamnTYPE {..}
 
 {-
 <xs:group name="SvenskAdress">
@@ -104,9 +104,9 @@ instance FromElement Namn where
     </xs:sequence>
 </xs:complexType>
 -}
-data SvenskAdress = SvenskAdress
-  { datumFrom :: Maybe SparDay,
-    datumTill :: Maybe SparDay,
+data SvenskAdressTYPE = SvenskAdressTYPE
+  { datumFrom :: Maybe SparDatumTYPE,
+    datumTill :: Maybe SparDatumTYPE,
     careOf :: Maybe Text,
     utdelningsadress1 :: Maybe Text,
     utdelningsadress2 :: Maybe Text,
@@ -115,7 +115,7 @@ data SvenskAdress = SvenskAdress
   }
   deriving stock (Generic, Show, Eq)
 
-instance FromElement SvenskAdress where
+instance FromElement SvenskAdressTYPE where
   fromElement = parseOrderedElement $ do
     datumFrom <- consumeElementOrAbsent "DatumFrom"
     datumTill <- consumeElementOrAbsent "DatumTill"
@@ -124,7 +124,7 @@ instance FromElement SvenskAdress where
     utdelningsadress2 <- consumeElementOrAbsent "Utdelningsadress2"
     postNr <- consumeElementOrAbsent "PostNr"
     postort <- consumeElementOrAbsent "Postort"
-    pure SvenskAdress {..}
+    pure SvenskAdressTYPE {..}
 
 {-
 <xs:element name="Folkbokforingsadress" type="FolkbokforingsadressTYPE"/>
@@ -134,12 +134,12 @@ instance FromElement SvenskAdress where
     </xs:sequence>
 </xs:complexType>
 -}
-newtype Folkbokforingsadress = Folkbokforingsadress
-  { svenskAdress :: SvenskAdress
+newtype FolkbokforingsadressTYPE = FolkbokforingsadressTYPE
+  { svenskAdress :: SvenskAdressTYPE
   }
   deriving stock (Generic, Show, Eq)
 
-instance FromElement Folkbokforingsadress where
+instance FromElement FolkbokforingsadressTYPE where
   fromElement = parseOrderedElement $ do
     svenskAdress <- consumeElement "SvenskAdress"
-    pure Folkbokforingsadress {..}
+    pure FolkbokforingsadressTYPE {..}

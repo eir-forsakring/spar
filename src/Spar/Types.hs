@@ -1,4 +1,3 @@
--- todo: fix type names (they should match xsd)
 {-# LANGUAGE TypeApplications #-}
 
 module Spar.Types
@@ -38,7 +37,7 @@ type KundNrSlutKund = Text
 
 type UppdragId = Text
 
-type SparResponse = Either SparError PersonsokningSvarspost
+type SparResponse = Either SparError AviseringPostTYPE
 
 data SparError
   = NoParse String

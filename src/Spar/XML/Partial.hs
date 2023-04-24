@@ -24,19 +24,29 @@ instance FromElement SPARPersonsokningSvarBody where
         pure SPARPersonsokningSvarBody {..}
 
 {-
-<xs:element name="SPARPersonsokningSvar"> <xs:annotation> <xs:documentation>
-    Innehåller frågan samt svarsposter utan sortering </xs:documentation>
-        </xs:annotation> <xs:complexType> <xs:sequence> <xs:element
-            ref="sok:PersonsokningFraga" minOccurs="0"/> <xs:choice> <xs:element
-        ref="PersonsokningSvarspost" minOccurs="0" maxOccurs="unbounded"/>
-    <xs:element ref="undantag:Undantag" minOccurs="0"/> <xs:element
-    ref="undantag:OverstigerMaxAntalSvarsposter" minOccurs="0"/> </xs:choice>
-        <xs:element name="UUID" type="xs:string" minOccurs="0"/> </xs:sequence>
-            </xs:complexType> </xs:element>
+<xs:element name="SPARPersonsokningSvar">
+    <xs:annotation>
+        <xs:documentation>
+            Innehåller frågan samt svarsposter utan sortering
+        </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+        <xs:sequence>
+            <xs:element ref="sok:PersonsokningFraga" minOccurs="0"/>
+            <xs:choice>
+                <xs:element ref="PersonsokningSvarspost" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="undantag:Undantag" minOccurs="0"/>
+                <xs:element ref="undantag:OverstigerMaxAntalSvarsposter" minOccurs="0"/>
+            </xs:choice>
+            <xs:element name="UUID" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:element>
+<xs:element name="PersonsokningSvarspost" type="aviseringspost:AviseringPostTYPE"/>
 -}
 data SPARPersonsokningSvar = SPARPersonsokningSvar
-  { personsokningFraga :: PersonsokningFraga,
-    personsokningSvarspost :: [PersonsokningSvarspost],
+  { personsokningFraga :: PersonsokningFragaTYPE,
+    personsokningSvarspost :: [AviseringPostTYPE],
     uuid :: Text
   }
   deriving stock (Generic, Show, Eq)
@@ -91,15 +101,15 @@ instance FromElement SPARPersonsokningSvar where
     </xs:choice>
 </xs:complexType>
 -}
-newtype PersonsokningFraga = PersonsokningFraga
+newtype PersonsokningFragaTYPE = PersonsokningFragaTYPE
   { idNummer :: Text
   }
   deriving stock (Generic, Show, Eq)
 
-instance FromElement PersonsokningFraga where
+instance FromElement PersonsokningFragaTYPE where
   fromElement = parseUnorderedElement $ do
     idNummer <- consumeElement "IdNummer"
-    pure PersonsokningFraga {..}
+    pure PersonsokningFragaTYPE {..}
 
 {-
 <xs:element name="PersonsokningSvarspost" type="aviseringspost:AviseringPostTYPE"/>
@@ -129,16 +139,27 @@ instance FromElement PersonsokningFraga where
 </xs:complexType>
 -}
 
-data PersonsokningSvarspost = PersonsokningSvarspost
+data AviseringPostTYPE = AviseringPostTYPE
   { personId :: PersonId,
     sekretessmarkering :: SekretessmarkeringMedAttributTYPE,
     skyddadFolkbokforing :: Text,
     senasteAndringSPAR :: Maybe Text,
-    namn :: Maybe Namn,
-    persondetaljer :: [Persondetaljer],
-    folkbokforingsadress :: [Folkbokforingsadress]
+    namn :: Maybe NamnTYPE,
+    persondetaljer :: [PersondetaljerTYPE],
+    folkbokforingsadress :: [FolkbokforingsadressTYPE]
   }
   deriving stock (Generic, Show, Eq)
+
+instance FromElement AviseringPostTYPE where
+  fromElement = parseUnorderedElementPartially $ do
+    personId <- consumeElement "PersonId"
+    sekretessmarkering <- consumeElement "Sekretessmarkering"
+    skyddadFolkbokforing <- consumeElement "SkyddadFolkbokforing"
+    senasteAndringSPAR <- consumeElementOrAbsent "SenasteAndringSPAR"
+    namn <- consumeElementOrAbsent "Namn"
+    persondetaljer <- consumeElements "Persondetaljer"
+    folkbokforingsadress <- consumeElements "Folkbokforingsadress"
+    pure AviseringPostTYPE {..}
 
 {-
 <xs:element name="Sekretessmarkering" type="SekretessmarkeringMedAttributTYPE"/>
@@ -158,17 +179,6 @@ instance FromElement SekretessmarkeringMedAttributTYPE where
   fromElement =
     parseContentElementPartially
       (\t _ -> pure $ SekretessmarkeringMedAttributTYPE t)
-
-instance FromElement PersonsokningSvarspost where
-  fromElement = parseUnorderedElementPartially $ do
-    personId <- consumeElement "PersonId"
-    sekretessmarkering <- consumeElement "Sekretessmarkering"
-    skyddadFolkbokforing <- consumeElement "SkyddadFolkbokforing"
-    senasteAndringSPAR <- consumeElementOrAbsent "SenasteAndringSPAR"
-    namn <- consumeElementOrAbsent "Namn"
-    persondetaljer <- consumeElements "Persondetaljer"
-    folkbokforingsadress <- consumeElements "Folkbokforingsadress"
-    pure PersonsokningSvarspost {..}
 
 {-
 <xs:element name="Persondetaljer" type="PersondetaljerTYPE"/>
@@ -204,9 +214,9 @@ instance FromElement PersonsokningSvarspost where
 </xs:complexType>
 -}
 
-data Persondetaljer = Persondetaljer
-  { datumFrom :: Maybe SparDay,
-    datumTill :: Maybe SparDay,
+data PersondetaljerTYPE = PersondetaljerTYPE
+  { datumFrom :: Maybe SparDatumTYPE,
+    datumTill :: Maybe SparDatumTYPE,
     sekretessmarkering :: Maybe Text,
     skyddadFolkbokforing :: Maybe Text,
     fodelsedatum :: Maybe Text,
@@ -214,7 +224,7 @@ data Persondetaljer = Persondetaljer
   }
   deriving stock (Generic, Show, Eq)
 
-instance FromElement Persondetaljer where
+instance FromElement PersondetaljerTYPE where
   fromElement = parseUnorderedElementPartially $ do
     datumFrom <- consumeElementOrAbsent "DatumFrom"
     datumTill <- consumeElementOrAbsent "DatumTill"
@@ -222,4 +232,4 @@ instance FromElement Persondetaljer where
     skyddadFolkbokforing <- consumeElementOrAbsent "SkyddadFolkbokforing"
     fodelsedatum <- consumeElementOrAbsent "Fodelsedatum"
     kon <- consumeElementOrAbsent "Kon"
-    pure Persondetaljer {..}
+    pure PersondetaljerTYPE {..}
