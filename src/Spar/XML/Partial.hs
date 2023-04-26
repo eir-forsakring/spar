@@ -9,7 +9,7 @@ import Spar.XML.Full
 
 {-
 This is the top-level 'SOAP body'. Note that we don't bother with namespaces (so
-they must be stripped from the document before parsing).
+we strip them before parsing).
 -}
 newtype SPARPersonsokningSvarBody = SPARPersonsokningSvarBody
   { sparPersonsokningSvar :: SPARPersonsokningSvar

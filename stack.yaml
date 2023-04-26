@@ -9,7 +9,7 @@ system-ghc: true
 
 extra-deps:
   - git: https://github.com/EggBaconAndSpam/structural-xml
-    commit: 49197c2bcbe3f1578925842fb16928c62c86ca8b
+    commit: c070301208730c3c867350e2f5739787a6511965
 
 flags:
   cryptonite:
