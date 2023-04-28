@@ -5,7 +5,7 @@ _build/
 cabal-dev
 .cabal-sandbox/
 cabal.sandbox.config
-*.cabal
+# *.cabal #stack relly wanted a cabal file
 *.chi
 *.chs.h
 .dev.env
