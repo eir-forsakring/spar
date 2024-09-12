@@ -7,9 +7,9 @@ dependencies:
   - aeson
   - bytestring
   - containers
+  - crypton-connection
   - exceptions
   - mtl
-  - connection
   - data-default
   - generic-lens
   - http-client

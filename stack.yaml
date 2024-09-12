@@ -1,4 +1,4 @@
-resolver: lts-19.31
+resolver: lts-22.29
 
 packages:
   - .
@@ -8,8 +8,10 @@ allow-newer: true
 system-ghc: true
 
 extra-deps:
-  - git: https://github.com/EggBaconAndSpam/structural-xml
-    commit: c070301208730c3c867350e2f5739787a6511965
+  - git: https://github.com/eir-forsakring/structural-xml
+    commit: f83c571f235c1ef3aee275078b004c36234eb2a7
+  - git: https://github.com/eir-forsakring/hs-connection
+    commit: cf3255a6f961ecfdb90579ff1cd39a42fe39d093
 
 flags:
   cryptonite:
