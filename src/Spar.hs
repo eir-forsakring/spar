@@ -5,7 +5,7 @@ module Spar where
 import Control.Lens ((^.))
 import Control.Monad.Catch
 import qualified Data.ByteString.Lazy as BL
-import Data.Text as T
+import qualified Data.Text as T
 import Data.XML (decodeDocumentLBS)
 import Network.HTTP.Client (Response (responseBody, responseStatus), httpLbs)
 import Network.HTTP.Types (statusIsSuccessful)

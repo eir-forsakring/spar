@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.37.0.
+-- This file has been generated from package.yaml by hpack version 0.38.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -60,7 +60,6 @@ library
       aeson
     , base >=4.7 && <5
     , bytestring
-    , containers
     , crypton-connection
     , data-default
     , exceptions
@@ -69,7 +68,6 @@ library
     , http-client-tls
     , http-types
     , lens
-    , mtl
     , req
     , structural-xml
     , text
@@ -123,7 +121,6 @@ test-suite spar-test
     , aeson
     , base >=4.7 && <5
     , bytestring
-    , containers
     , crypton-connection
     , data-default
     , directory
@@ -134,7 +131,6 @@ test-suite spar-test
     , http-client-tls
     , http-types
     , lens
-    , mtl
     , req
     , spar
     , structural-xml
